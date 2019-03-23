@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="activity_vertical_margin">10sp</dimen>
+    <dimen name="activity_horizontal_margin">10sp</dimen>
+    <dimen name="img_height">250sp</dimen>
+    <dimen name="img_width">250sp</dimen>
+    <dimen name="margin_top">50sp</dimen>
+    <dimen name="text_size_30">30sp</dimen>
+    <dimen name="text_size_20">20sp</dimen>
+    <dimen name="margin_30">30sp</dimen>
+</resources>

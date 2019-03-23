@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Just Chat</string>
+    <string name="enter_you_phone_number">Enter you Phone Number</string>
+    <string name="continueText">Continue</string>
+    <string name="enter_the_otp_code_sent_to_your_mobile">Enter the OTP Code sent to your Mobile</string>
+</resources>
