@@ -1,9 +1,12 @@
 package com.example.android.myapplication;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,7 +23,21 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
+
+import static android.content.ContentValues.TAG;
 
 public class VerifyPhoneNumber extends AppCompatActivity {
     EditText otpEditText;
@@ -83,6 +100,7 @@ public class VerifyPhoneNumber extends AppCompatActivity {
                 otpEditText.setText(code);
                 //verifying the code
                 verifyVerificationCode(code);
+                new SendPostRequest(phoneNumber).execute();
             }
         }
 
@@ -113,7 +131,7 @@ public class VerifyPhoneNumber extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             //verification successful we will start the profile activity
-                            Intent intent = new Intent(VerifyPhoneNumber.this, MainActivity.class);
+                            Intent intent = new Intent(VerifyPhoneNumber.this, ChatActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
 
@@ -132,5 +150,80 @@ public class VerifyPhoneNumber extends AppCompatActivity {
                     }
                 });
     }
+
+}
+class SendPostRequest extends AsyncTask<String, Void, String> {
+    InputStream inputStream;
+    OutputStream outputStream;
+    String number;
+
+    public SendPostRequest(String phoneNumber) {
+        number=phoneNumber;
+
+    }
+
+    protected void onPreExecute() {
+
+    }
+
+    protected String doInBackground(String... arg0) {
+
+        try {
+
+
+            try {
+                URL url = new URL("https://6559ycjiyl.execute-api.ap-south-1.amazonaws.com/latest/add_user");
+
+                JSONObject postDataParams = new JSONObject();
+                postDataParams.put("Phone Number",number);
+                Log.d(TAG, "doInBackground: "+postDataParams );
+                HttpURLConnection  httpURLConnection = (HttpURLConnection) url.openConnection();
+                String userCredentials = "70123104:Dinesh1234321";
+                String basicAuth = "Basic " + Base64.encodeToString(userCredentials.getBytes(), Base64.DEFAULT);
+                httpURLConnection.setRequestProperty("Authorization", basicAuth);
+
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setRequestMethod("POST");
+                outputStream = httpURLConnection.getOutputStream();
+                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+                bufferedWriter.write(String.valueOf(postDataParams));
+                bufferedWriter.flush();
+                int statusCode = httpURLConnection.getResponseCode();
+                Log.d("this", " The status code is " + statusCode);
+                if (statusCode == 200)
+                {
+                    inputStream = new BufferedInputStream(httpURLConnection.getInputStream());
+                    String response =  convertInputStreamToString(inputStream);
+                    Log.d("this", "The response is " + response);
+                    JSONObject jsonObject = new JSONObject(response);
+                    return response;
+                }
+                else { return null; }
+            }
+            catch (Exception e)
+            { e.printStackTrace(); }
+            finally
+            {
+                try { if (inputStream != null) { inputStream.close(); } if (outputStream != null) { outputStream.close(); } } catch (Exception e) { e.printStackTrace(); } }
+        } catch (Exception e) {
+            return new String("Exception: " + e.getMessage());
+        }
+        return null;
+    }
+
+
+    @Override
+    protected void onPostExecute(String result) {
+
+    }
+    private String convertInputStreamToString(InputStream inputStream)
+    { BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        try { while ((line = reader.readLine()) != null)
+        { sb.append(line).append('\n'); } }
+        catch (IOException e) { e.printStackTrace(); }
+        finally { try { inputStream.close(); } catch (IOException e) { e.printStackTrace(); } } return sb.toString(); }
 
 }
